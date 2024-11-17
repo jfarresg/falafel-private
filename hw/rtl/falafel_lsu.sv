@@ -23,7 +23,7 @@ module falafel_lsu
 
     //----------- memory request -----------//
     output logic              mem_req_val_o,       // req valid
-    input  logic              mem_req_rdy_i,       // mem ready
+    input  logic              mem_req_ack_i,       // mem ready
     output logic              mem_req_is_write_o,  // 1 for write, 0 for read
     output logic              mem_req_is_cas_o,    // 1 for cas, 0 for write
     output logic [DATA_W-1:0] mem_req_addr_o,      // address
@@ -77,6 +77,9 @@ module falafel_lsu
   free_block_t read_block_d, read_block_q;
   word_t read_word_d, read_word_q;
 
+  logic val_buffer_d, val_buffer_q;
+  logic val_trigger;
+
   assign word_buffer_d = (alloc_req_val_i && alloc_req_rdy_o) ? (alloc_req_word_i) : word_buffer_q;
   assign lock_id_buffer_d = (alloc_req_val_i && alloc_req_rdy_o) ? (alloc_req_lock_id_i) : lock_id_buffer_q;
   assign block_buffer_d = (alloc_req_val_i && alloc_req_rdy_o) ? (alloc_req_block_i) : block_buffer_q;
@@ -85,19 +88,22 @@ module falafel_lsu
   assign alloc_rsp_word_o = read_word_q;
   assign alloc_rsp_block_o = read_block_q;
 
+  assign mem_req_val_o = val_buffer_d & !val_buffer_q;
+  assign val_buffer_d = val_trigger;
+
   always_comb begin
     state_d = state_q;
 
     alloc_req_rdy_o = 1'b0;
     alloc_rsp_val_o = 1'b0;
 
-    mem_req_val_o = 1'b0;
     mem_req_is_write_o = 1'b0;
     mem_req_is_cas_o = 1'b0;
     mem_req_cas_exp_o = '0;
     mem_req_data_o = '0;
     mem_rsp_rdy_o = 1'b0;
 
+    val_trigger = 1'b0;
 
     addr_buffer_d = addr_buffer_q;
     read_block_d = read_block_q;
@@ -123,10 +129,10 @@ module falafel_lsu
       end
 
       STATE_LOAD_WORD: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b0;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_LOAD;
         end
       end
@@ -141,11 +147,11 @@ module falafel_lsu
       end
 
       STATE_STORE_WORD: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b1;
         mem_req_data_o = word_buffer_q;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_STORE;
         end
       end
@@ -159,10 +165,10 @@ module falafel_lsu
       end
 
       STATE_LOAD_BLOCK_SIZE: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b0;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_BLOCK_SIZE;
           addr_buffer_d = addr_buffer_q + WORD_SIZE;
         end
@@ -178,10 +184,10 @@ module falafel_lsu
       end
 
       STATE_LOAD_BLOCK_PTR: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b0;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_BLOCK_PTR;
         end
       end
@@ -196,11 +202,11 @@ module falafel_lsu
       end
 
       STATE_STORE_BLOCK_SIZE: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b1;
         mem_req_data_o = block_buffer_q.size;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_STORE_BLOCK_SIZE;
           addr_buffer_d = addr_buffer_q + WORD_SIZE;
         end
@@ -215,11 +221,11 @@ module falafel_lsu
       end
 
       STATE_STORE_BLOCK_PTR: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b1;
         mem_req_data_o = block_buffer_q.next_ptr;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_WAIT_STORE_BLOCK_PTR;
         end
       end
@@ -233,10 +239,10 @@ module falafel_lsu
       end
 
       STATE_LOCK_LOAD_KEY: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b0;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_LOCK_WAIT_KEY;
         end
       end
@@ -251,11 +257,11 @@ module falafel_lsu
       end
 
       STATE_LOCK_DO_CAS: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_cas_o = 1'b1;
         mem_req_data_o = lock_id_buffer_q;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_LOCK_WAIT_CAS;
         end
       end
@@ -270,11 +276,11 @@ module falafel_lsu
       end
 
       STATE_UNLOCK_UPDATE: begin
-        mem_req_val_o = 1'b1;
+        val_trigger = 1'b1;
         mem_req_is_write_o = 1'b1;
         mem_req_data_o = EMPTY_KEY;
 
-        if (mem_req_rdy_i) begin
+        if (mem_req_ack_i) begin
           state_d = STATE_UNLOCK_WAIT_UPDATE;
         end
       end
@@ -309,6 +315,7 @@ module falafel_lsu
       block_buffer_q <= '0;
       read_block_q <= '0;
       read_word_q <= '0;
+      val_buffer_q <= '0;
     end else begin
       state_q <= state_d;
       addr_buffer_q <= addr_buffer_d;
@@ -317,6 +324,7 @@ module falafel_lsu
       block_buffer_q <= block_buffer_d;
       read_block_q <= read_block_d;
       read_word_q <= read_word_d;
+      val_buffer_q <= val_buffer_d;
     end
   end
 endmodule

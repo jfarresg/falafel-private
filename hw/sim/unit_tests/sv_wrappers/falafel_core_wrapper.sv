@@ -47,6 +47,7 @@ module falafel_core_wrapper
 
   falafel_core i_falafel_core (
       .falafel_config_i(falafel_config),
+      .mem_req_ack_i(mem_req_rdy_i),
       .*
   );
 

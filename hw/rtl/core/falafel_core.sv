@@ -20,7 +20,7 @@ module falafel_core
 
     //----------- memory request -----------//
     output logic              mem_req_val_o,       // req valid
-    input  logic              mem_req_rdy_i,       // mem ready
+    input  logic              mem_req_ack_i,       // mem ready
     output logic              mem_req_is_write_o,  // 1 for write, 0 for read
     output logic              mem_req_is_cas_o,    // 1 for cas, 0 for write
     output logic [DATA_W-1:0] mem_req_addr_o,      // address
@@ -552,7 +552,7 @@ module falafel_core
       .alloc_req_lock_id_i(falafel_config_i.lock_id),
       .alloc_rsp_block_o  (lsu_rsp_block),
 
-      .mem_req_rdy_i,
+      .mem_req_ack_i,
       .mem_req_val_o,
       .mem_req_is_write_o,
       .mem_req_is_cas_o,

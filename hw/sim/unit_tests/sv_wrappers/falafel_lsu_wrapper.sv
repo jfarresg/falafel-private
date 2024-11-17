@@ -44,6 +44,7 @@ module falafel_lsu_wrapper
   falafel_lsu i_falafel_lsu (
       .alloc_req_block_i({alloc_req_block_size_i, alloc_req_block_next_ptr_i}),
       .alloc_rsp_block_o(rsp_block),
+      .mem_req_ack_i(mem_req_rdy_i),
       .*
   );
 

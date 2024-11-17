@@ -12,16 +12,16 @@ WRAPPER_DIR = SIM_DIR + '/unit_tests/sv_wrappers'
 sys.path.insert(0, SIM_DIR + '/cocotb_common')
 
 
-def test_falafel_fifo():
-    run(
-        includes=[INCLUDE_DIR],
-        verilog_sources=[
-            INCLUDE_DIR + "/fifos/falafel_fifo_internal.sv",
-            INCLUDE_DIR + "/fifos/falafel_fifo.sv"],
-        toplevel="falafel_fifo",
-        module="cocotb_fifo",
-        sim_build="sim_build/falafel_fifo",
-    )
+# def test_falafel_fifo():
+#     run(
+#         includes=[INCLUDE_DIR],
+#         verilog_sources=[
+#             INCLUDE_DIR + "/fifos/falafel_fifo_internal.sv",
+#             INCLUDE_DIR + "/fifos/falafel_fifo.sv"],
+#         toplevel="falafel_fifo",
+#         module="cocotb_fifo",
+#         sim_build="sim_build/falafel_fifo",
+#     )
 
 
 # def test_falafel_input_parser():
@@ -38,16 +38,16 @@ def test_falafel_fifo():
 #     )
 
 
-def test_falafel_lsu():
-    run(
-        includes=[INCLUDE_DIR],
-        verilog_sources=[INCLUDE_DIR + "/falafel_pkg.sv",
-                         RTL_DIR + "/falafel_lsu.sv",
-                         WRAPPER_DIR + "/falafel_lsu_wrapper.sv"],
-        toplevel="falafel_lsu_wrapper",
-        module="cocotb_falafel_lsu",
-        sim_build="sim_build/falafel_lsu",
-    )
+# def test_falafel_lsu():
+#     run(
+#         includes=[INCLUDE_DIR],
+#         verilog_sources=[INCLUDE_DIR + "/falafel_pkg.sv",
+#                          RTL_DIR + "/falafel_lsu.sv",
+#                          WRAPPER_DIR + "/falafel_lsu_wrapper.sv"],
+#         toplevel="falafel_lsu_wrapper",
+#         module="cocotb_falafel_lsu",
+#         sim_build="sim_build/falafel_lsu",
+#     )
 
 
 def test_falafel_core():

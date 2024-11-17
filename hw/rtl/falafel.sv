@@ -22,7 +22,7 @@ module falafel
 
     //----------- memory request ------------//
     output logic              mem_req_val_o,       // req valid
-    input  logic              mem_req_rdy_i,       // mem ready
+    input  logic              mem_req_ack_i,       // mem ready
     output logic              mem_req_is_write_o,  // 1 for write, 0 for read
     output logic              mem_req_is_cas_o,    // 1 for cas, 0 for write
     output logic [DATA_W-1:0] mem_req_addr_o,      // address
@@ -123,7 +123,7 @@ module falafel
       .resp_fifo_full_i  (resp_fifo_full),
       .resp_fifo_write_o (resp_fifo_write_en),
       .resp_fifo_din_o   (resp_fifo_din),
-      .mem_req_rdy_i,
+      .mem_req_ack_i,
       .mem_req_val_o,
       .mem_req_is_write_o,
       .mem_req_is_cas_o,

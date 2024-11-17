@@ -1,5 +1,4 @@
 from cocotb_bus.bus import Bus
-from abc import abstractmethod
 
 from cocotb.triggers import RisingEdge, ReadOnly
 
@@ -9,7 +8,7 @@ class FalafelValRdyBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -22,7 +21,7 @@ class FalafelLsuRequestBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -34,7 +33,7 @@ class FalafelLsuResponseBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -46,7 +45,7 @@ class FalafelMemRequestBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -58,7 +57,7 @@ class FalafelMemResponseBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -70,7 +69,7 @@ class FalafelFifoWriteBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -82,7 +81,7 @@ class FalafelFifoReadBus(Bus):
 
     def __init__(self, entity, name, signals):
         for signal in self._signalNames:
-            if not signal in signals:
+            if signal not in signals:
                 raise AttributeError(
                     f"signals doesn't contain a value for key" f"{name}")
 
@@ -147,7 +146,6 @@ class FalafelValRdyDriver:
 
         await RisingEdge(self.clk)
         self.bus.val.value = 0
-
 
     async def sendi(self, index, data):
         await RisingEdge(self.clk)
@@ -248,24 +246,24 @@ class FalafelMemRequestMonitor:
 
     async def recv(self):
         await RisingEdge(self.clk)
-        self.bus.rdy.value = 1
+        self.bus._signals['rdy'].setimmediatevalue(1)
 
         await ReadOnly()
 
-        while not self.bus.val.value:
+        while not self.bus._signals['val'].value:
             await RisingEdge(self.clk)
             await ReadOnly()
 
-        is_write = int(self.bus.is_write)
-        is_cas = int(self.bus.is_cas)
-        addr = int(self.bus.addr)
-        data = int(self.bus.data)
-        cas_exp = int(self.bus.cas_exp)
+        is_write = int(self.bus._signals['is_write'].value)
+        is_cas = int(self.bus._signals['is_cas'].value)
+        addr = int(self.bus._signals['addr'].value)
+        data = int(self.bus._signals['data'].value)
+        cas_exp = int(self.bus._signals['cas_exp'].value)
 
         await RisingEdge(self.clk)
-        self.bus.rdy.value = 0
+        self.bus._signals['rdy'].setimmediatevalue(0)
 
-        # print('mem req recv: (is_write, addr, data):', (is_write, addr, data))
+        print('mem req recv: (is_write, is_cas, addr, data):', (is_write, is_cas, addr, data))
         return (is_write, is_cas, addr, data, cas_exp)
 
 
@@ -276,17 +274,17 @@ class FalafelMemResponseDriver:
 
     async def send(self, data):
         await RisingEdge(self.clk)
-        self.bus.val.value = 1
-        self.bus.data.value = data
+        self.bus._signals['val'].setimmediatevalue(1)
+        self.bus._signals['data'].setimmediatevalue(data)
 
         await ReadOnly()
 
-        while not self.bus.rdy.value:
+        while not self.bus._signals['rdy'].value:
             await RisingEdge(self.clk)
             await ReadOnly()
 
         await RisingEdge(self.clk)
-        self.bus.val.value = 0
+        self.bus._signals['val'].setimmediatevalue(0)
 
 
 class FalafelFifoReadSlave:
@@ -295,16 +293,16 @@ class FalafelFifoReadSlave:
         self.bus = bus
         self.queue = []
 
-        self.bus.empty.value = 1
-        self.bus.dout.value = 0
+        self.bus._signals['empty'].setimmediatevalue(1)
+        self.bus._signals['dout'].setimmediatevalue(0)
 
     async def push(self, data):
         self.queue.append(data)
 
     async def monitor(self):
         await RisingEdge(self.clk)
-        self.bus.empty.value = 1
-        self.bus.dout.value = 0
+        self.bus._signals['empty'].setimmediatevalue(1)
+        self.bus._signals['dout'].setimmediatevalue(0)
 
         await RisingEdge(self.clk)
 
@@ -313,17 +311,17 @@ class FalafelFifoReadSlave:
                 await RisingEdge(self.clk)
                 continue
 
-            self.bus.empty.value = 0
-            self.bus.dout.value = self.queue.pop(0)
+            self.bus._signals['empty'].setimmediatevalue(0)
+            self.bus._signals['dout'].setimmediatevalue(self.queue.pop(0))
 
             await ReadOnly()
 
-            while not self.bus.read.value:
+            while not self.bus._signals['read'].value:
                 await RisingEdge(self.clk)
                 await ReadOnly()
 
             await RisingEdge(self.clk)
-            self.bus.empty.value = 1
+            self.bus._signals['empty'].setimmediatevalue(1)
 
 
 class FalafelFifoWriteSlave:
@@ -332,7 +330,7 @@ class FalafelFifoWriteSlave:
         self.bus = bus
         self.queue = []
 
-        self.bus.full.value = 1
+        self.bus._signals['full'].setimmediatevalue(0)
 
     async def pop(self):
         while len(self.queue) == 0:
@@ -342,14 +340,14 @@ class FalafelFifoWriteSlave:
 
     async def monitor(self):
         await RisingEdge(self.clk)
-        self.bus.full.value = 0
+        self.bus._signals['full'].setimmediatevalue(0)
 
         while True:
             await RisingEdge(self.clk)
             await ReadOnly()
 
-            while not self.bus.write.value:
+            while not self.bus._signals['write'].value:
                 await RisingEdge(self.clk)
                 await ReadOnly()
 
-            self.queue.append(int(self.bus.din.value))
+            self.queue.append(int(self.bus._signals['din'].value))

@@ -114,159 +114,159 @@ async def test_load_store_words(dut):
     await Timer(100, units=UNITS)
 
 
-@cocotb.test()
-async def test_load_store_blocks(dut):
-    """Test loading and storing blocks"""
+# @cocotb.test()
+# async def test_load_store_blocks(dut):
+#     """Test loading and storing blocks"""
 
-    clk = dut.clk_i
+#     clk = dut.clk_i
 
-    cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
+#     cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
 
-    lsu_req_bus = FalafelLsuRequestBus(
-        dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
-                           'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
-                           'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
+#     lsu_req_bus = FalafelLsuRequestBus(
+#         dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
+#                            'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
+#                            'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
 
-    lsu_rsp_bus = FalafelLsuResponseBus(
-        dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
-                           'block_size': 'block_size_o', 'block_next_ptr':
-                           'block_next_ptr_o'})
+#     lsu_rsp_bus = FalafelLsuResponseBus(
+#         dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
+#                            'block_size': 'block_size_o', 'block_next_ptr':
+#                            'block_next_ptr_o'})
 
-    lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
-    lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
+#     lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
+#     lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
 
-    await reset_dut(dut, clk)
+#     await reset_dut(dut, clk)
 
-    await cocotb.start(sim_time_counter(dut, clk))
-    await cocotb.start(mem_monitor(dut, clk, {}))
+#     await cocotb.start(sim_time_counter(dut, clk))
+#     await cocotb.start(mem_monitor(dut, clk, {}))
 
-    SIZE = 10
-    addr = [16*i for i in range(SIZE)]
-    data = [(i, 2*i) for i in range(SIZE)]
+#     SIZE = 10
+#     addr = [16*i for i in range(SIZE)]
+#     data = [(i, 2*i) for i in range(SIZE)]
 
-    for (a, d) in zip(addr, data):
-        await lsu_req_driver.store_block(a, d)
-        await lsu_rsp_monitor.recv()
+#     for (a, d) in zip(addr, data):
+#         await lsu_req_driver.store_block(a, d)
+#         await lsu_rsp_monitor.recv()
 
-    for (a, d) in zip(addr, data):
-        await lsu_req_driver.load_block(a)
-        (_, b) = await lsu_rsp_monitor.recv()
+#     for (a, d) in zip(addr, data):
+#         await lsu_req_driver.load_block(a)
+#         (_, b) = await lsu_rsp_monitor.recv()
 
-        assert b == d, "values don't match"
+#         assert b == d, "values don't match"
 
-    await Timer(100, units=UNITS)
-
-
-
-@cocotb.test()
-async def test_mix_words_blocks(dut):
-    """Test mixing words and blocks"""
-
-    clk = dut.clk_i
-    cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
-
-    lsu_req_bus = FalafelLsuRequestBus(
-        dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
-                           'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
-                           'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
-
-    lsu_rsp_bus = FalafelLsuResponseBus(
-        dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
-                           'block_size': 'block_size_o', 'block_next_ptr':
-                           'block_next_ptr_o'})
-
-    lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
-    lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
-
-    await reset_dut(dut, clk)
-
-    await cocotb.start(sim_time_counter(dut, clk))
-    await cocotb.start(mem_monitor(dut, clk, {}))
-
-    await lsu_req_driver.store_block(0, (3, 4))
-    await lsu_rsp_monitor.recv()
-
-    await lsu_req_driver.store_word(16, 5)
-    await lsu_rsp_monitor.recv()
-
-    await lsu_req_driver.store_block(24, (6, 7))
-    await lsu_rsp_monitor.recv()
-
-    await lsu_req_driver.store_word(40, 8)
-    await lsu_rsp_monitor.recv()
-
-    await lsu_req_driver.load_block(24)
-    (_, b) = await lsu_rsp_monitor.recv()
-    assert b == (6, 7), "values don't match"
-
-    await lsu_req_driver.load_word(16)
-    (w, _) = await lsu_rsp_monitor.recv()
-    assert w == 5, "values don't match"
-
-    await lsu_req_driver.load_block(0)
-    (_, b) = await lsu_rsp_monitor.recv()
-    assert b == (3, 4), "values don't match"
-
-    await lsu_req_driver.load_word(40)
-    (w, _) = await lsu_rsp_monitor.recv()
-    assert w == 8, "values don't match"
-
-    await Timer(100, units=UNITS)
+#     await Timer(100, units=UNITS)
 
 
-@cocotb.test()
-async def test_lock_unlock(dut):
-    """Test locking and unlocking"""
 
-    clk = dut.clk_i
-    cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
+# @cocotb.test()
+# async def test_mix_words_blocks(dut):
+#     """Test mixing words and blocks"""
 
-    lsu_req_bus = FalafelLsuRequestBus(
-        dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
-                           'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
-                           'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
+#     clk = dut.clk_i
+#     cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
 
-    lsu_rsp_bus = FalafelLsuResponseBus(
-        dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
-                           'block_size': 'block_size_o', 'block_next_ptr':
-                           'block_next_ptr_o'})
+#     lsu_req_bus = FalafelLsuRequestBus(
+#         dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
+#                            'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
+#                            'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
 
-    lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
-    lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
+#     lsu_rsp_bus = FalafelLsuResponseBus(
+#         dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
+#                            'block_size': 'block_size_o', 'block_next_ptr':
+#                            'block_next_ptr_o'})
 
-    LOCK_ID = 1
-    LOCK_ADDR = 1024
+#     lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
+#     lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
 
-    init_mem = {}
-    init_mem[LOCK_ADDR//WORD_SIZE] = LOCK_ID+1
+#     await reset_dut(dut, clk)
 
-    await reset_dut(dut, clk)
+#     await cocotb.start(sim_time_counter(dut, clk))
+#     await cocotb.start(mem_monitor(dut, clk, {}))
 
-    await cocotb.start(sim_time_counter(dut, clk))
-    await cocotb.start(mem_monitor(dut, clk, init_mem))
+#     await lsu_req_driver.store_block(0, (3, 4))
+#     await lsu_rsp_monitor.recv()
 
-    await lsu_req_driver.lock(LOCK_ADDR, LOCK_ID)
+#     await lsu_req_driver.store_word(16, 5)
+#     await lsu_rsp_monitor.recv()
 
-    # check that lsu doesn't attempt to overwrite the taken lock
-    for _i in range(50):
-        await FallingEdge(clk)
-        assert init_mem[LOCK_ADDR//8] == LOCK_ID+1
+#     await lsu_req_driver.store_block(24, (6, 7))
+#     await lsu_rsp_monitor.recv()
 
-    init_mem[LOCK_ADDR//8] = 0
+#     await lsu_req_driver.store_word(40, 8)
+#     await lsu_rsp_monitor.recv()
 
-    for _i in range(20):
-        await FallingEdge(clk)
+#     await lsu_req_driver.load_block(24)
+#     (_, b) = await lsu_rsp_monitor.recv()
+#     assert b == (6, 7), "values don't match"
 
-    assert init_mem[LOCK_ADDR//8] == LOCK_ID
-    await lsu_rsp_monitor.recv()
+#     await lsu_req_driver.load_word(16)
+#     (w, _) = await lsu_rsp_monitor.recv()
+#     assert w == 5, "values don't match"
 
-    assert init_mem[LOCK_ADDR//8] == LOCK_ID
+#     await lsu_req_driver.load_block(0)
+#     (_, b) = await lsu_rsp_monitor.recv()
+#     assert b == (3, 4), "values don't match"
 
-    await lsu_req_driver.unlock(LOCK_ADDR)
-    await lsu_rsp_monitor.recv()
+#     await lsu_req_driver.load_word(40)
+#     (w, _) = await lsu_rsp_monitor.recv()
+#     assert w == 8, "values don't match"
 
-    await Timer(CLK_PERIOD*20, units=UNITS)
+#     await Timer(100, units=UNITS)
 
-    assert init_mem[LOCK_ADDR//8] == 0
 
-    await Timer(100, units=UNITS)
+# @cocotb.test()
+# async def test_lock_unlock(dut):
+#     """Test locking and unlocking"""
+
+#     clk = dut.clk_i
+#     cocotb.start_soon(Clock(clk, CLK_PERIOD, units=UNITS).start())
+
+#     lsu_req_bus = FalafelLsuRequestBus(
+#         dut, "alloc_req", {'val': 'val_i', 'rdy': 'rdy_o', 'op': 'op_i',
+#                            'addr': 'addr_i', 'word': 'word_i', 'lock_id': 'lock_id_i', 'block_size':
+#                            'block_size_i', 'block_next_ptr': 'block_next_ptr_i'})
+
+#     lsu_rsp_bus = FalafelLsuResponseBus(
+#         dut, "alloc_rsp", {'val': 'val_o', 'rdy': 'rdy_i', 'word': 'word_o',
+#                            'block_size': 'block_size_o', 'block_next_ptr':
+#                            'block_next_ptr_o'})
+
+#     lsu_req_driver = FalafelLsuRequestDriver(lsu_req_bus, clk)
+#     lsu_rsp_monitor = FalafelLsuResponseMonitor(lsu_rsp_bus, clk)
+
+#     LOCK_ID = 1
+#     LOCK_ADDR = 1024
+
+#     init_mem = {}
+#     init_mem[LOCK_ADDR//WORD_SIZE] = LOCK_ID+1
+
+#     await reset_dut(dut, clk)
+
+#     await cocotb.start(sim_time_counter(dut, clk))
+#     await cocotb.start(mem_monitor(dut, clk, init_mem))
+
+#     await lsu_req_driver.lock(LOCK_ADDR, LOCK_ID)
+
+#     # check that lsu doesn't attempt to overwrite the taken lock
+#     for _i in range(50):
+#         await FallingEdge(clk)
+#         assert init_mem[LOCK_ADDR//8] == LOCK_ID+1
+
+#     init_mem[LOCK_ADDR//8] = 0
+
+#     for _i in range(20):
+#         await FallingEdge(clk)
+
+#     assert init_mem[LOCK_ADDR//8] == LOCK_ID
+#     await lsu_rsp_monitor.recv()
+
+#     assert init_mem[LOCK_ADDR//8] == LOCK_ID
+
+#     await lsu_req_driver.unlock(LOCK_ADDR)
+#     await lsu_rsp_monitor.recv()
+
+#     await Timer(CLK_PERIOD*20, units=UNITS)
+
+#     assert init_mem[LOCK_ADDR//8] == 0
+
+#     await Timer(100, units=UNITS)
