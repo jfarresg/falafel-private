@@ -1,8 +1,7 @@
-env
-.vim
-!requirements.txt
-*.fst
+sim_build/
+__pycache__/
+results.xml
 *.vcd
-__pycache__
-sim_build
-*.gtkw
+*.fst
+*.fst.hier
+!doc/dump_*.fst

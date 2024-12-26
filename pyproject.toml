@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "falafel-env"
+version = "0.1.0"
+description = ""
+authors = ["takeshiho0531 <kawadatakeshiho@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.10.12"
+cocotb = "1.8.0"
+cocotb-test = "0.2.4"
+cocotb-bus = "0.2.1"
+find-libpython = "0.3.0"
+iniconfig = "2.0.0"
+packaging = "23.1"
+pluggy = "1.2.0"
+pytest = "7.4.0"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.13.2"
+black = "^24.10.0"
+flake8 = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
