@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+
 # constants
 WORD_SIZE = 8
 BLOCK_ALIGNMENT = WORD_SIZE

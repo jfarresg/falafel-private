@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+
 from dataclasses import dataclass
 from falafel_pkg import WORD_SIZE
 

@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+
 import sys
 import os
 from cocotb_test.simulator import run

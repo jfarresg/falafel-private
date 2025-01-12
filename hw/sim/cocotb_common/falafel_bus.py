@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+
 from cocotb_bus.bus import Bus
 from abc import abstractmethod
 

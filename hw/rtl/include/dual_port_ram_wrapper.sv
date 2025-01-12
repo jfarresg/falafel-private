@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+
 module dual_port_ram_wrapper #(
     parameter DATA_W = 32,
     parameter ADDR_W = 10,

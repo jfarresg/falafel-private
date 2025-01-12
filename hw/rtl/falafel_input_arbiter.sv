@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: © 2025 Joan Farres Garcia
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+
 `timescale 1ns / 1ps
 
 module falafel_input_arbiter
