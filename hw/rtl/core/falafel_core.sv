@@ -160,6 +160,8 @@ module falafel_core
 
     sbrk_req_val_o = 1'b0;
 
+    resp_fifo_din_o = 1'b0;
+    
     unique case (state_q)
       STATE_INIT: begin
         state_d = STATE_IDLE;

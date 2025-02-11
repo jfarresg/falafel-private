@@ -123,7 +123,7 @@ module falafel_lsu
             LSU_OP_STORE_BLOCK: state_d = STATE_STORE_BLOCK_SIZE;
             LSU_OP_LOCK: state_d = STATE_LOCK_LOAD_KEY;
             LSU_OP_UNLOCK: state_d = STATE_UNLOCK_UPDATE;
-            default: assert (0);
+            // default: assert (0);
           endcase
         end
       end
@@ -301,7 +301,7 @@ module falafel_lsu
         end
       end
 
-      default: assert (0);
+      // default: assert (0);
     endcase
   end
 

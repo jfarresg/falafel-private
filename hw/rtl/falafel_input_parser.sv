@@ -80,6 +80,8 @@ module falafel_input_parser
 
     config_reg_write_o = 1'b0;
 
+    req_rdy_o = 1'b0;
+    
     unique case (input_state_q)
       STATE_READ_HEADER: begin
         req_rdy_o = 1'b1;
